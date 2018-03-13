@@ -16,6 +16,7 @@ class PS2Mouse
 {
 	public:
 		PS2Mouse(uint8_t, uint8_t, uint8_t);
+		PS2Mouse(uint8_t, uint8_t);
 		void begin();
 		void getData();
 		
@@ -42,11 +43,19 @@ class PS2Mouse
 
 };
 
-PS2Mouse::PS2Mouse(uint8_t clockPin, uint8_t dataPin, uint8_t resetPin)
+PS2Mouse::PS2Mouse(uint8_t clockPin, uint8_t dataPin, uint8_t resetPin) /* TrackPoint */
 {
 	_clockPin = clockPin;
 	_dataPin = dataPin;
 	_resetPin = resetPin;
+	_i = 0;
+}
+
+PS2Mouse::PS2Mouse(uint8_t clockPin, uint8_t dataPin)
+{
+	_clockPin = clockPin;
+	_dataPin = dataPin;
+	_resetPin = 0;
 	_i = 0;
 }
 
@@ -81,7 +90,7 @@ void PS2Mouse::begin()
 void PS2Mouse::getData()
 {	
 	_writeRead(REQUEST_DATA);
-	mouseData[0] |= _read();			/* buttons */					
+	mouseData[0] |= _read();			/* buttons */
 	if(( _i=_read() ))
 	{
 		mouseData[1] = _i;			/* x */

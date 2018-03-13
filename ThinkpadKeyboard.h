@@ -76,7 +76,7 @@ void ThinkpadKeyboard::getData()
 	 * loop _j up to numKeysCurrentlyPressed 	- put that many keys into 
 	 * loop _i up to MAX_KEY_PRESS			- this many slots
 	  */
-	for(_j = 0, _i = 0; (_i < MAX_KEY_PRESS) && (_j < numKeysCurrentlyPressed); _j++) 		/* TOFIX: NKRO */
+	for(_j = 0, _i = 0; (_i < MAX_KEY_PRESS) && (_j < numKeysCurrentlyPressed) ; _j++) 		/* TOFIX: NKRO */
 	{
 		switch(keysCurrentlyPressed[_j])
 		{
@@ -119,7 +119,6 @@ void ThinkpadKeyboard::getData()
 								break;
 		}
 	}
-	numKeysCurrentlyPressed=0;
 }
 
 void ThinkpadKeyboard::sendData() /* send the keyReport over USB HID */

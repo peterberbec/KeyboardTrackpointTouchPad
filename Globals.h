@@ -4,7 +4,7 @@
 ThinkpadKeyboard thinkpadKeyboard;			/* USB keyboard included in class now */
 
 PS2Mouse trackPoint(A1, A2, A3);			/* (Clock, Data, Reset) */
-PS2Mouse touchPad(A4, A5, 0);				/* (Clock, Data) */
+PS2Mouse touchPad(A4, A5);				/* (Clock, Data) */
 MouseUSB mouseUSB;						/* USB mouse class */
 
 #endif
