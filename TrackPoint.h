@@ -17,7 +17,7 @@ class TrackPoint
 	public:
 		TrackPoint(uint8_t, uint8_t, uint8_t);
 		void begin();
-		void getData(uint8_t[4]);
+		void getData();
 
 	private:
 		uint8_t _clockPin;
@@ -59,14 +59,14 @@ void TrackPoint::begin()
 	v_read();
 }
 
-void TrackPoint::getData(uint8_t data[4])
+void TrackPoint::getData()
 {
 	_writeRead(REQUEST_DATA);
-	data[0] |= _read();
+	mouseData[0] |= _read();
 	_i = _read();
-	if(_i != 0) data[1] = _i;
+	if(_i != 0) mouseData[1] = _i;
 	_i = -_read();
-	if(_i != 0) data[2] = _i;
+	if(_i != 0) mouseData[2] = _i;
 }
 
 void TrackPoint::_golo(uint8_t pin)

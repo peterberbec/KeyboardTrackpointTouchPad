@@ -17,7 +17,7 @@ class TouchPad
 	public:
 		TouchPad(uint8_t, uint8_t);
 		void begin();
-		void getData(uint8_t[4]);
+		void getData();
 		
 	private:
 		uint8_t _clockPin;
@@ -64,13 +64,13 @@ void TouchPad::begin()
 	v_read(); 		/* original -> */ /*	delay(500); */
 }
 
-void TouchPad::getData(uint8_t data[4])
+void TouchPad::getData()
 {	
 	_writeRead(REQUEST_DATA);
-	data[0] = _read();					/* buttons */
-	data[1] = _read();					/* x */
-	data[2] = -_read();					/* y is negative. no clue why */
-	data[3] = (_intelliMouse)?-_read():0;	/* everyone loves trinary operators! and wheel is negative too. */
+	mouseData[0] = _read();					/* buttons */
+	mouseData[1] = _read();					/* x */
+	mouseData[2] = -_read();					/* y is negative. no clue why */
+	mouseData[3] = (_intelliMouse)?-_read():0;	/* everyone loves trinary operators! and wheel is negative too. */
 }
 
 void TouchPad::_golo(uint8_t pin)
