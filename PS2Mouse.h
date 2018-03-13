@@ -192,7 +192,7 @@ bool PS2Mouse::_intelliMouseCheck()	 /* IntelliMouse detection sequence */
 void PS2Mouse::sendData()
 {
 	_mouseData[0] = _mouseData[0] & 0x07; 				/* chop off the bits above the rightmost three in the button press */
-	HID().SendReport(HID_PROTOCOL_MOUSE,_mouseData,4);
+	HID().SendReport(HID_PROTOCOL_MOUSE,_mouseData,sizeof(_mouseData));
 	_mouseData[0] = 0;
 	_mouseData[1] = 0;
 	_mouseData[2] = 0;
