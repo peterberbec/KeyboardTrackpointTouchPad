@@ -14,12 +14,12 @@ class ThinkpadKeyboard
 		static void sendData();
 		
 	private:
-		void press(uint8_t);
+		void _press(uint8_t);
 		uint16_t _i, _j; /*looping variables */
 		uint8_t _keysToSend, _keyPressCount;
 		const uint8_t  _inputPins[TOTAL_INPUT_PINS]  = { 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 49, 51, 53, LAST_PIN /* last needs a rewire */ };
 		const uint8_t _outputPins[TOTAL_OUTPUT_PINS] = { 22, 24, 26, 28, 30, 32, 34, 36, 38, 40 };
-		static KeyReport keyData;
+		static KeyReport _keyData;
 };
 
 ThinkpadKeyboard::ThinkpadKeyboard() /* constructor - setup pins */
@@ -59,16 +59,16 @@ void ThinkpadKeyboard::begin() /* setup variables */
 	for(_i = 0; _i < MAX_KEY_PRESS; _i++)
 	{
 		keysCurrentlyPressed[_i] = 0;
-		keyData.keys[_i] = 0;
+		_keyData.keys[_i] = 0;
 	}
-	keyData.reserved = 0;
-	keyData.modifiers = 0;
+	_keyData.reserved = 0;
+	_keyData.modifiers = 0;
 	numKeysCurrentlyPressed = 0;
 	_keysToSend = 0;
 	_keyPressCount = 0;
 }
 
-void ThinkpadKeyboard::press(uint8_t k)
+void ThinkpadKeyboard::_press(uint8_t k)
 {
 	switch(k)
 	{	
@@ -76,7 +76,7 @@ void ThinkpadKeyboard::press(uint8_t k)
 		case 0x100:
 		case 0x101:		
 		*/
-		default:			keyData.keys[_keysToSend++] = k;
+		default:			_keyData.keys[_keysToSend++] = k;
 						break;
 	}
 }
@@ -100,42 +100,42 @@ void ThinkpadKeyboard::getData()
 	{
 		switch(keysCurrentlyPressed[_keyPressCount])
 		{
-			case KEY_VOL_UP:		press(0xE0);
-								press(0x32);
+			case KEY_VOL_UP:		_press(0xE0);
+								_press(0x32);
 								break;
-			case KEY_VOL_DOWN:		press(0xE0);
-								press(0x02);
+			case KEY_VOL_DOWN:		_press(0xE0);
+								_press(0x02);
 								break;
-			case KEY_MUTE:			press(0xE0);
-								press(0x23);
-			case KEY_BREAK:		press(0xE0);
-								press(0x46);
+			case KEY_MUTE:			_press(0xE0);
+								_press(0x23);
+			case KEY_BREAK:		_press(0xE0);
+								_press(0x46);
 								break;
-			case KEY_PAUSE:		press(0xE1);
-								press(0x1D);
-								press(0x45);
-								press(0xE1);
-								press(0x9D);
-								press(0xC5);
+			case KEY_PAUSE:		_press(0xE1);
+								_press(0x1D);
+								_press(0x45);
+								_press(0xE1);
+								_press(0x9D);
+								_press(0xC5);
 								break;
 								// Above Not Working
-			case KEY_POWER:		press(KEY_LEFT_CTRL);
-								press(KEY_LEFT_ALT);
-								press(KEY_DELETE);
+			case KEY_POWER:		_press(KEY_LEFT_CTRL);
+								_press(KEY_LEFT_ALT);
+								_press(KEY_DELETE);
 								break;
-			case KEY_IBM:			press(KEY_LEFT_CTRL);
-								press(KEY_LEFT_SHIFT);
-								press(KEY_F10);
+			case KEY_IBM:			_press(KEY_LEFT_CTRL);
+								_press(KEY_LEFT_SHIFT);
+								_press(KEY_F10);
 								break;
-			case KEY_FN:			press(KEY_LEFT_GUI);
+			case KEY_FN:			_press(KEY_LEFT_GUI);
 								break;
-			case KEY_PAGE_LEFT:		press(KEY_LEFT_CTRL);
-								press(KEY_LEFT_ARROW);
+			case KEY_PAGE_LEFT:		_press(KEY_LEFT_CTRL);
+								_press(KEY_LEFT_ARROW);
 								break;
-			case KEY_PAGE_RIGHT:	press(KEY_RIGHT_CTRL);
-								press(KEY_RIGHT_ARROW);
+			case KEY_PAGE_RIGHT:	_press(KEY_RIGHT_CTRL);
+								_press(KEY_RIGHT_ARROW);
 								break;
-			default:				press(keysCurrentlyPressed[_keyPressCount]);
+			default:				_press(keysCurrentlyPressed[_keyPressCount]);
 								break;
 		}
 	}
@@ -143,6 +143,6 @@ void ThinkpadKeyboard::getData()
 
 void ThinkpadKeyboard::sendData() /* send the keyReport over USB HID */
 {
-	HID().SendReport(HID_PROTOCOL_KEYBOARD,&keyData,sizeof(keyData));
+	HID().SendReport(HID_PROTOCOL_KEYBOARD,&_keyData,sizeof(_keyData));
 }
 #endif
