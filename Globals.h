@@ -6,6 +6,7 @@ ThinkpadKeyboard thinkpadKeyboard;			/* USB keyboard included in class now */
 PS2Mouse trackPoint(A1, A2, A3);			/* (Clock, Data, Reset) */
 PS2Mouse touchPad(A4, A5);				/* (Clock, Data) */
 
-uint8_t PS2Mouse::mouseData[4];
+uint8_t PS2Mouse::mouseData[4];			/* Shared between all PS2Mouses */
+KeyReport ThinkpadKeyboard::keyData;		/* Shared between all ThinkpadKeyboards */
 
 #endif

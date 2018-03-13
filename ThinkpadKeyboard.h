@@ -11,13 +11,15 @@ class ThinkpadKeyboard
 		ThinkpadKeyboard();
 		void begin();
 		void getData();
-		void sendData();
+		static void sendData();
 		
 	private:
+		void press(uint8_t);
 		uint16_t _i, _j; /*looping variables */
+		uint8_t _keysToSend, _keyPressCount;
 		const uint8_t  _inputPins[TOTAL_INPUT_PINS]  = { 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 49, 51, 53, LAST_PIN /* last needs a rewire */ };
 		const uint8_t _outputPins[TOTAL_OUTPUT_PINS] = { 22, 24, 26, 28, 30, 32, 34, 36, 38, 40 };
-		KeyReport keyData;
+		static KeyReport keyData;
 };
 
 ThinkpadKeyboard::ThinkpadKeyboard() /* constructor - setup pins */
@@ -62,60 +64,78 @@ void ThinkpadKeyboard::begin() /* setup variables */
 	keyData.reserved = 0;
 	keyData.modifiers = 0;
 	numKeysCurrentlyPressed = 0;
+	_keysToSend = 0;
+	_keyPressCount = 0;
+}
+
+void ThinkpadKeyboard::press(uint8_t k)
+{
+	switch(k)
+	{	
+		/* do magic stuff for modifiers */ /*
+		case 0x100:
+		case 0x101:		
+		*/
+		default:			keyData.keys[_keysToSend++] = k;
+						break;
+	}
 }
 
 void ThinkpadKeyboard::getData()
 {
+	begin(); /* Clear data from last time */
 	for(outPin = 0; outPin < TOTAL_OUTPUT_PINS ; outPin++)	/* Light up all pins */
 	{
 		digitalWrite(_outputPins[outPin], LOW);			/* Interrupt triggered by _inputPins falling */
 		digitalWrite(_outputPins[outPin], HIGH);		/* keysCurrentlyPressed[current] set to keyboardMatrixChar[outPin][ISR_call_#] in ISR */
 	}
 	/* loop through keys in keysCurrentlyPressed and put them into the keyreport
-	 * _j cycles through keysCurrentlyPressed, _i cycles through open slots in keyreport.keys
-	 * loop _j up to numKeysCurrentlyPressed 	- put that many keys into 
-	 * loop _i up to MAX_KEY_PRESS			- this many slots
+	 * _keyPressCount cycles through keysCurrentlyPressed, _keysToSend cycles through open slots in keyreport.keys
+	 * loop _keyPressCount up to numKeysCurrentlyPressed 	- put that many keys into 
+	 * loop _keysToSend up to MAX_KEY_PRESS			- this many slots
 	  */
-	for(_j = 0, _i = 0; (_i < MAX_KEY_PRESS) && (_j < numKeysCurrentlyPressed) ; _j++) 		/* TOFIX: NKRO */
+	for(_keysToSend = 0, _keyPressCount = 0;  
+	   (_keysToSend < MAX_KEY_PRESS) && (_keyPressCount < numKeysCurrentlyPressed); 
+	    _keyPressCount++) 		/* TOFIX: NKRO */
 	{
-		switch(keysCurrentlyPressed[_j])
+		switch(keysCurrentlyPressed[_keyPressCount])
 		{
-			case KEY_VOL_UP:		keyData.keys[_i++] = 0xE0;
-								keyData.keys[_i++] = 0x32;
+			case KEY_VOL_UP:		press(0xE0);
+								press(0x32);
 								break;
-			case KEY_VOL_DOWN:		keyData.keys[_i++] = 0xE0;
-								keyData.keys[_i++] = 0x02;
+			case KEY_VOL_DOWN:		press(0xE0);
+								press(0x02);
 								break;
-			case KEY_MUTE:			keyData.keys[_i++] = 0xE0;
-								keyData.keys[_i++] = 0x23;
-			case KEY_BREAK:		keyData.keys[_i++] = 0xE0;
-								keyData.keys[_i++] = 0x46;
+			case KEY_MUTE:			press(0xE0);
+								press(0x23);
+			case KEY_BREAK:		press(0xE0);
+								press(0x46);
 								break;
-			case KEY_PAUSE:		keyData.keys[_i++] = 0xE1;
-								keyData.keys[_i++] = 0x1D;
-								keyData.keys[_i++] = 0x45;
-								keyData.keys[_i++] = 0xE1;
-								keyData.keys[_i++] = 0x9D;
-								keyData.keys[_i++] = 0xC5;
+			case KEY_PAUSE:		press(0xE1);
+								press(0x1D);
+								press(0x45);
+								press(0xE1);
+								press(0x9D);
+								press(0xC5);
 								break;
 								// Above Not Working
-			case KEY_POWER:		keyData.keys[_i++] = KEY_LEFT_CTRL;
-								keyData.keys[_i++] = KEY_LEFT_ALT;
-								keyData.keys[_i++] = KEY_DELETE;
+			case KEY_POWER:		press(KEY_LEFT_CTRL);
+								press(KEY_LEFT_ALT);
+								press(KEY_DELETE);
 								break;
-			case KEY_IBM:			keyData.keys[_i++] = KEY_LEFT_CTRL;
-								keyData.keys[_i++] = KEY_LEFT_SHIFT;
-								keyData.keys[_i++] = KEY_F10;
+			case KEY_IBM:			press(KEY_LEFT_CTRL);
+								press(KEY_LEFT_SHIFT);
+								press(KEY_F10);
 								break;
-			case KEY_FN:			keyData.keys[_i++] = KEY_LEFT_GUI;
+			case KEY_FN:			press(KEY_LEFT_GUI);
 								break;
-			case KEY_PAGE_LEFT:		keyData.keys[_i++] = KEY_LEFT_CTRL;
-								keyData.keys[_i++] = KEY_LEFT_ARROW;
+			case KEY_PAGE_LEFT:		press(KEY_LEFT_CTRL);
+								press(KEY_LEFT_ARROW);
 								break;
-			case KEY_PAGE_RIGHT:	keyData.keys[_i++] = KEY_RIGHT_CTRL;
-								keyData.keys[_i++] = KEY_RIGHT_ARROW;
+			case KEY_PAGE_RIGHT:	press(KEY_RIGHT_CTRL);
+								press(KEY_RIGHT_ARROW);
 								break;
-			default:				keyData.keys[_i++] = keysCurrentlyPressed[_j];
+			default:				press(keysCurrentlyPressed[_keyPressCount]);
 								break;
 		}
 	}
@@ -124,6 +144,5 @@ void ThinkpadKeyboard::getData()
 void ThinkpadKeyboard::sendData() /* send the keyReport over USB HID */
 {
 	HID().SendReport(HID_PROTOCOL_KEYBOARD,&keyData,sizeof(keyData));
-	begin(); /* clear out all the keys */
 }
 #endif

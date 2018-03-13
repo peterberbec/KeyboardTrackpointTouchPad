@@ -12,9 +12,9 @@ void setup()
 void loop()
 {	
 	thinkpadKeyboard.getData();		/* get data from keyboard */
-	thinkpadKeyboard.sendData();		/* send keyboard data over USB */	/* tofix: MAX_KEY_PRESS == 6 */
+	ThinkpadKeyboard::sendData();		/* send keyboard data over USB */	/* tofix: MAX_KEY_PRESS == 6 */
 	
 	touchPad.getData();				/* get data from touchPad first, touchPad.getGata is = */
 	trackPoint.getData();			/* get data from trackPoint second, trackPoint.getData is if(!0) = */
-		trackPoint.sendData();		/* send mouse data over USB */
+	PS2Mouse::sendData();		/* send mouse data over USB */
 }

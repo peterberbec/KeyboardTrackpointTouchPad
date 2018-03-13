@@ -12,7 +12,7 @@ class PS2Mouse
 		PS2Mouse(uint8_t, uint8_t);
 		void begin();
 		void getData();
-		void sendData();
+		static void sendData();
 		
 	private:
 		uint8_t _clockPin;
@@ -199,6 +199,9 @@ void PS2Mouse::sendData()
 {
 	mouseData[0] = mouseData[0] & 0x07; 				/* chop off the bits above the rightmost three in the button press */
 	HID().SendReport(HID_PROTOCOL_MOUSE,mouseData,4);
-	begin(); 		/* data sent. reset to zero */
+	mouseData[0] = 0;
+	mouseData[1] = 0;
+	mouseData[2] = 0;
+	mouseData[3] = 0; 		/* data sent. reset to zero */
 }
 #endif
