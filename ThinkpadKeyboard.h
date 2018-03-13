@@ -251,8 +251,10 @@ void ThinkpadKeyboard::getData(KeyReport data)
 		digitalWrite(_outputPins[outPin], LOW);			/* Interrupt triggered by inPin falling */
 		digitalWrite(_outputPins[outPin], HIGH);
 	}
+	/* loop through keys in keysCurrentlyPressed and put them into the keyreport
+	 * _j cycles through keysCurrentlyPressed, _i cycles through open slots in keyreport.keys */
 	for(_j = 0, _i = 0; _i < MAX_KEY_PRESS, _j < numKeysCurrentlyPressed; _j++) 		/* TOFIX: NKRO */
-	{	/* _j cycles through keysCurrentlyPressed, _i cycles through open slots in keyreport.keys */
+	{
 		switch(keysCurrentlyPressed[_j])
 		{
 			case KEY_VOL_UP:		data.keys[_i++] = 0xE0;
