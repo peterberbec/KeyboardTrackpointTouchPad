@@ -1,7 +1,6 @@
 #include "ThinkpadKeyboard.h"		/* Initial Github Commit */
 #include "MouseUSB.h"
-#include "TouchPad.h"
-#include "TrackPoint.h"
+#include "PS2Mouse.h"
 #include "Globals.h"
 
 void setup()

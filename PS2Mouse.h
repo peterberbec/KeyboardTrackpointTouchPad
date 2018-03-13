@@ -1,5 +1,5 @@
-#ifndef TouchPad_h
-#define TouchPad_h
+#ifndef PS2Mouse_h
+#define PS2Mouse_h
 
 #define SET_RESOLUTION			0xE8
 #define REQUEST_DATA			0xEB
@@ -12,10 +12,10 @@
 #define SET_SCALING_TO_1_TO_1		0xE6
 #define RESOLUTION_8_COUNTS_PER_MM	0x03
 
-class TouchPad
+class PS2Mouse
 {
 	public:
-		TouchPad(uint8_t, uint8_t);
+		PS2Mouse(uint8_t, uint8_t, uint8_t);
 		void begin();
 		void getData();
 		
@@ -30,6 +30,8 @@ class TouchPad
 		void _write(uint8_t);
 		uint8_t _read();
 
+		uint8_t _resetPin;
+
 		bool _intelliMouse;	
 		bool _intelliMouseCheck();
 
@@ -40,52 +42,66 @@ class TouchPad
 
 };
 
-TouchPad::TouchPad(uint8_t clockPin, uint8_t dataPin)
+PS2Mouse::PS2Mouse(uint8_t clockPin, uint8_t dataPin, uint8_t resetPin)
 {
 	_clockPin = clockPin;
 	_dataPin = dataPin;
+	_resetPin = resetPin;
 	_i = 0;
 }
 
-void TouchPad::begin()
+void PS2Mouse::begin()
 {
-	_gohi(_clockPin);	/* start clock */
-	_gohi(_dataPin);	/* start data */
-	_writeRead(RESET); 	/* Reset */
-	v_read();			/* self-test state */
-	v_read();			/* mouse ID */
-	_intelliMouse = _intelliMouseCheck();
-	_writeRead(SET_RESOLUTION);
-	_writeRead(RESOLUTION_8_COUNTS_PER_MM);
-	_writeRead(SET_SCALING_TO_1_TO_1);
-	_writeRead(SET_SAMPLE_RATE);
-	_writeRead(SAMPLE_RATE);
+	_gohi(_clockPin);			/* start clock */
+	_gohi(_dataPin);			/* start data */
+	if(_resetPin == 0)			/* means we're a PS2 mouse */
+	{
+		pinMode(_resetPin, OUTPUT);	/* reset */
+		digitalWrite(_resetPin, HIGH);
+		delay(2000); // empirical value
+		digitalWrite(_resetPin, LOW);
+		_intelliMouse = 0;
+	}
+	else						/* or we're an eraser */
+	{
+		_writeRead(RESET); 	/* Reset */
+		v_read();			/* self-test state */
+		v_read();			/* mouse ID */
+		_intelliMouse = _intelliMouseCheck();
+		_writeRead(SET_RESOLUTION);
+		_writeRead(RESOLUTION_8_COUNTS_PER_MM);
+		_writeRead(SET_SCALING_TO_1_TO_1);
+		_writeRead(SET_SAMPLE_RATE);
+		_writeRead(SAMPLE_RATE);		
+	}
 	_writeRead(SET_REMOTE_MODE);
 	v_read(); 		/* original -> */ /*	delay(500); */
 }
 
-void TouchPad::getData()
+void PS2Mouse::getData()
 {	
 	_writeRead(REQUEST_DATA);
-	mouseData[0] = _read();					/* buttons */
-	mouseData[1] = _read();					/* x */
-	mouseData[2] = -_read();					/* y is negative. no clue why */
+	mouseData[0] |= _read();			/* buttons */
+	_i = _read();					/* x */
+	if(_i != 0) mouseData[1] = _i;
+	_i = -_read();					/* y is negative. no clue why */
+	if(_i != 0) mouseData[2] = _i;
 	mouseData[3] = (_intelliMouse)?-_read():0;	/* everyone loves trinary operators! and wheel is negative too. */
 }
 
-void TouchPad::_golo(uint8_t pin)
+void PS2Mouse::_golo(uint8_t pin)
 {
 	pinMode(pin, OUTPUT);
 	digitalWrite(pin, LOW);
 }
 
-void TouchPad::_gohi(uint8_t pin)
+void PS2Mouse::_gohi(uint8_t pin)
 {
 	pinMode(pin, INPUT);
 	digitalWrite(pin, HIGH);
 }
 
-void TouchPad::_write(uint8_t data)
+void PS2Mouse::_write(uint8_t data)
 {
 	uint8_t parityBit = 0x01;
 
@@ -97,7 +113,8 @@ void TouchPad::_write(uint8_t data)
 	_golo(_dataPin);
 	delayMicroseconds(10);
 	_gohi(_clockPin); 	/* start bit */
-	_wait(HIGH);		/* original ->> */ /* _wait(LOW); */
+	_wait(HIGH);
+	
 	for(_i = 0; _i < 8; _i++)
 	{				/* data */
 		_trueHiFalseLo(data & 0x01);
@@ -106,26 +123,27 @@ void TouchPad::_write(uint8_t data)
 		parityBit = parityBit ^ (data & 0x01);
 		data = data >> 1;
 	}
+	
 	_trueHiFalseLo(parityBit);
 	_wait(LOW); 		/* clock cycle - like ack. */
 	_wait(HIGH);
 	_gohi(_dataPin); 	/* stop bit */
 	delayMicroseconds(50);
-	_wait(HIGH);		/* original ->> */ /* _wait(LOW); */
+	_wait(HIGH);
 	while((digitalRead(_clockPin) == LOW) || (digitalRead(_dataPin) == LOW));
 	_golo(_clockPin); 	/* put a hold on the incoming data */
 }
 
-uint8_t TouchPad::_read()
+uint8_t PS2Mouse::_read()
 {
 	uint8_t data = 0x00;
 
 	_gohi(_clockPin);
 	_gohi(_dataPin);
 	delayMicroseconds(50);
-	_wait(HIGH);		/* original ->> */ /* _wait(LOW); */
+	_wait(HIGH);
 	delayMicroseconds(5);
-	_wait(LOW); 		/* original ->> */ /* _wait(HIGH); */ /* consume the start bit */
+	_wait(LOW); 		/* consume the start bit */
 
 	for(_i = 0; _i < 8; _i++)
 	{				/* consume 8 bits of data */
@@ -143,7 +161,7 @@ uint8_t TouchPad::_read()
 	return data;
 }
 
-bool TouchPad::_intelliMouseCheck()	 /* IntelliMouse detection sequence */
+bool PS2Mouse::_intelliMouseCheck()	 /* IntelliMouse detection sequence */
 {	/* Don't ask - 200 100 80 is magic */
 	_writeRead(SET_SAMPLE_RATE);
 	_writeRead(200);

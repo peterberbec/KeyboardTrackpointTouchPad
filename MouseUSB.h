@@ -35,5 +35,9 @@ void MouseUSB::sendData()
 {
 	mouseData[0] = mouseData[0] & 0x07; 				/* chop off the bits above the rightmost three in the button press */
 	HID().SendReport(HID_PROTOCOL_MOUSE,mouseData,4);
+	mouseData[0] = 0; 		/* data sent. reset to zero */
+	mouseData[1] = 0;
+	mouseData[2] = 0;
+	mouseData[3] = 0;
 }
 #endif
