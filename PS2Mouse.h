@@ -19,7 +19,7 @@ class PS2Mouse
 		uint8_t _dataPin;
 		uint8_t _resetPin;
 
-		static uint8_t mouseData[4];
+		static uint8_t mouseData[4];					/* [0] = buttons, [1] = x, [2] = y, [3] = wheel */
 		
 		uint8_t _i;
 				
