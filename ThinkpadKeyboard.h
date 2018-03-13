@@ -252,6 +252,7 @@ void ThinkpadKeyboard::getData(KeyReport data)
 		digitalWrite(_outputPins[outPin], HIGH);
 	}
 	for(_j = 0, _i = 0; _i < MAX_KEY_PRESS, _j < numKeysCurrentlyPressed; _j++) 		/* TOFIX: NKRO */
+	{	/* _j cycles through keysCurrentlyPressed, _i cycles through open slots in keyreport.keys */
 		switch(keysCurrentlyPressed[_j])
 		{
 			case KEY_VOL_UP:		data.keys[_i++] = 0xE0;
