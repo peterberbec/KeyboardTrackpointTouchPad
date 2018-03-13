@@ -1,11 +1,12 @@
 #ifndef KeyboardDefines
 #define KeyboardDefines
 
-#define LAST_PIN			55	// pin last wire is sent to
+#define LAST_PIN			55	/* pin last wire is sent to */
 
 #define TOTAL_INPUT_PINS		17
 #define TOTAL_OUTPUT_PINS	10
 
+/* TOFIX: This needs to be higher */
 #ifndef MAX_KEY_PRESS
 #define MAX_KEY_PRESS		6
 #endif
@@ -92,6 +93,7 @@ volatile uint8_t keysCurrentlyPressed[MAX_KEY_PRESS];
 volatile uint8_t numKeysCurrentlyPressed;
 uint8_t outPin;
 
+/* Determined from hours of trial and error */
 const uint8_t keyboardMatrixChar[TOTAL_INPUT_PINS][TOTAL_OUTPUT_PINS] = {
 /*		      0		     1		     2		      3			   4		   5				 6			   7			     8		 9 */
 /*  0 */ {   '\0',	        'h',	        '6',		    'y',		      'u',	 'j',		    '7',			 'm',		   'n',	    '\0' },
@@ -199,12 +201,12 @@ class ThinkpadKeyboard
 		void getData(KeyReport);
 		
 	private:
-		uint16_t _i, _j; // looping variable
+		uint16_t _i, _j; /*looping variables */
 		const uint8_t  _inputPins[TOTAL_INPUT_PINS]  = { 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 49, 51, 53, LAST_PIN /* last needs a rewire */ };
 		const uint8_t _outputPins[TOTAL_OUTPUT_PINS] = { 22, 24, 26, 28, 30, 32, 34, 36, 38, 40 };
 };
 
-ThinkpadKeyboard::ThinkpadKeyboard() // constructor
+ThinkpadKeyboard::ThinkpadKeyboard() /* constructor - initialize variables */
 {
 	for(_i = 0; _i < MAX_KEY_PRESS; _i++)
 	{
@@ -213,21 +215,21 @@ ThinkpadKeyboard::ThinkpadKeyboard() // constructor
 	numKeysCurrentlyPressed = 0;
 }
 
-void ThinkpadKeyboard::begin() // setup pins
+void ThinkpadKeyboard::begin() /* setup pins */
 {
-	for(_i = 0; _i < TOTAL_OUTPUT_PINS; _i++)	// set all _outputPins as output and set HIGH
+	for(_i = 0; _i < TOTAL_OUTPUT_PINS; _i++)	/* set all _outputPins as output and set HIGH */
 	{
 		pinMode(_outputPins[_i], OUTPUT);
 		digitalWrite(_outputPins[_i], HIGH);
 	}
-	for(_j = 0; _j < TOTAL_INPUT_PINS; _j++)	// set all _inputPins as INPUT_PULLUP
+	for(_j = 0; _j < TOTAL_INPUT_PINS; _j++)	/* set all _inputPins as INPUT_PULLUP */
 	{
 		pinMode(_inputPins[_j], INPUT_PULLUP);
 	}
 	
-	attachInterrupt(_inputPins[0],  pin0falling,  FALLING); // For Due, Zero, MKR1000 and 101 boards the interrupt number = pin number.
-	attachInterrupt(_inputPins[1],  pin1falling,  FALLING); // https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/
-	attachInterrupt(_inputPins[2],  pin2falling,  FALLING);
+	attachInterrupt(_inputPins[0],  pin0falling,  FALLING); /* Interrupt is triggered when we put _outputPin low */
+	attachInterrupt(_inputPins[1],  pin1falling,  FALLING); /* For Due, Zero, MKR1000 and 101 boards the interrupt number = pin number. */
+	attachInterrupt(_inputPins[2],  pin2falling,  FALLING); /* https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/ */
 	attachInterrupt(_inputPins[3],  pin3falling,  FALLING);
 	attachInterrupt(_inputPins[4],  pin4falling,  FALLING);
 	attachInterrupt(_inputPins[5],  pin5falling,  FALLING);
