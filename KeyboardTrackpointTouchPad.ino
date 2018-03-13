@@ -16,7 +16,7 @@ void setup()
 
 void loop()
 {	
-	thinkpadKeyboard.getData(keyboardData.keys);	/* get data from keyboard */
+	thinkpadKeyboard.getData(keyboardData);	/* get data from keyboard */
 		keyboardUSB.sendData(keyboardData);	/* send keyboard data over USB */	/* tofix: MAX_KEY_PRESS == 6 */
 	touchPad.getData(mouseData);				/* get data from touchPad first, touchPad.getGata is = */
 	trackPoint.getData(mouseData);			/* get data from trackPoint second, trackPoint.getData is if(!0) = */

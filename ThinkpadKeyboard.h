@@ -196,7 +196,7 @@ class ThinkpadKeyboard
 	public:
 		ThinkpadKeyboard();
 		void begin();
-		void getData(uint8_t[MAX_KEY_PRESS]);
+		void getData(KeyReport);
 		
 	private:
 		uint16_t _i, _j; // looping variable
@@ -244,55 +244,62 @@ void ThinkpadKeyboard::begin() // setup pins
 	attachInterrupt(_inputPins[16], pin16falling, FALLING);
 }
 
-void ThinkpadKeyboard::getData(uint8_t keys[MAX_KEY_PRESS])
+void ThinkpadKeyboard::getData(KeyReport data)
 {
 	for(outPin = 0; outPin < TOTAL_OUTPUT_PINS ; outPin++)	/* Light up all pins */
 	{
 		digitalWrite(_outputPins[outPin], LOW);			/* Interrupt triggered by inPin falling */
 		digitalWrite(_outputPins[outPin], HIGH);
 	}
-	for(_j = 0, _i = 0; _i < MAX_KEY_PRESS; _j++) 		/* TOFIX: NKRO */
-	{
+	for(_j = 0, _i = 0; _i < MAX_KEY_PRESS, _j < numKeysCurrentlyPressed; _j++) 		/* TOFIX: NKRO */
 		switch(keysCurrentlyPressed[_j])
 		{
-			case KEY_VOL_UP:		keys[_i++] = 0xE0;
-								keys[_i++] = 0x32;
+			case KEY_VOL_UP:		data.keys[_i++] = 0xE0;
+								data.keys[_i++] = 0x32;
 								break;
-			case KEY_VOL_DOWN:		keys[_i++] = 0xE0;
-								keys[_i++] = 0x02;
+			case KEY_VOL_DOWN:		data.keys[_i++] = 0xE0;
+								data.keys[_i++] = 0x02;
 								break;
-			case KEY_MUTE:			keys[_i++] = 0xE0;
-								keys[_i++] = 0x23;
-			case KEY_BREAK:		keys[_i++] = 0xE0;
-								keys[_i++] = 0x46;
+			case KEY_MUTE:			data.keys[_i++] = 0xE0;
+								data.keys[_i++] = 0x23;
+			case KEY_BREAK:		data.keys[_i++] = 0xE0;
+								data.keys[_i++] = 0x46;
 								break;
-			case KEY_PAUSE:		keys[_i++] = 0xE1;
-								keys[_i++] = 0x1D;
-								keys[_i++] = 0x45;
-								keys[_i++] = 0xE1;
-								keys[_i++] = 0x9D;
-								keys[_i++] = 0xC5;
+			case KEY_PAUSE:		data.keys[_i++] = 0xE1;
+								data.keys[_i++] = 0x1D;
+								data.keys[_i++] = 0x45;
+								data.keys[_i++] = 0xE1;
+								data.keys[_i++] = 0x9D;
+								data.keys[_i++] = 0xC5;
 								break;
 								// Above Not Working
-			case KEY_POWER:		keys[_i++] = KEY_LEFT_CTRL;
-								keys[_i++] = KEY_LEFT_ALT;
-								keys[_i++] = KEY_DELETE;
+			case KEY_POWER:		data.keys[_i++] = KEY_LEFT_CTRL;
+								data.keys[_i++] = KEY_LEFT_ALT;
+								data.keys[_i++] = KEY_DELETE;
 								break;
-			case KEY_IBM:			keys[_i++] = KEY_LEFT_CTRL;
-								keys[_i++] = KEY_LEFT_SHIFT;
-								keys[_i++] = KEY_F10;
+			case KEY_IBM:			data.keys[_i++] = KEY_LEFT_CTRL;
+								data.keys[_i++] = KEY_LEFT_SHIFT;
+								data.keys[_i++] = KEY_F10;
 								break;
-			case KEY_FN:			keys[_i++] = KEY_LEFT_GUI;
+			case KEY_FN:			data.keys[_i++] = KEY_LEFT_GUI;
 								break;
-			case KEY_PAGE_LEFT:		keys[_i++] = KEY_LEFT_CTRL;
-								keys[_i++] = KEY_LEFT_ARROW;
+			case KEY_PAGE_LEFT:		data.keys[_i++] = KEY_LEFT_CTRL;
+								data.keys[_i++] = KEY_LEFT_ARROW;
 								break;
-			case KEY_PAGE_RIGHT:	keys[_i++] = KEY_RIGHT_CTRL;
-								keys[_i++] = KEY_RIGHT_ARROW;
+			case KEY_PAGE_RIGHT:	data.keys[_i++] = KEY_RIGHT_CTRL;
+								data.keys[_i++] = KEY_RIGHT_ARROW;
 								break;
-			default:				keys[_i++] = keysCurrentlyPressed[_j];
+			default:				data.keys[_i++] = keysCurrentlyPressed[_j];
 								break;
 		}
+		keysCurrentlyPressed[_j] = 0x00; /* It's been moved into keys for HID report, so clear it in the ISR array */
+	}
+	while(_i < MAX_KEY_PRESS) /* clear remaining key before sending the HID report. Empties out any keys pressed previously beyond the number pressed this loop */
+	{
+		data.keys[_i++] = 0x00;
+	}
+	while(_j < MAX_KEY_PRESS) /* complete the blanking of pressed keys array. This should never happen. */
+	{
 		keysCurrentlyPressed[_j] = 0x00;
 	}
 	numKeysCurrentlyPressed=0;
