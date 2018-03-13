@@ -54,15 +54,15 @@ void PS2Mouse::begin()
 {
 	_gohi(_clockPin);			/* start clock */
 	_gohi(_dataPin);			/* start data */
-	if(_resetPin == 0)			/* means we're a PS2 mouse */
+	if(_resetPin)				/* we're an eraser */
 	{
 		pinMode(_resetPin, OUTPUT);	/* reset */
 		digitalWrite(_resetPin, HIGH);
-		delay(2000); // empirical value
+		delay(2000); 				/* empirical value */
 		digitalWrite(_resetPin, LOW);
 		_intelliMouse = 0;
 	}
-	else						/* or we're an eraser */
+	else						/* or we're a PS2 mouse */
 	{
 		_writeRead(RESET); 	/* Reset */
 		v_read();			/* self-test state */
@@ -75,18 +75,29 @@ void PS2Mouse::begin()
 		_writeRead(SAMPLE_RATE);		
 	}
 	_writeRead(SET_REMOTE_MODE);
-	v_read(); 		/* original -> */ /*	delay(500); */
+	v_read();
 }
 
 void PS2Mouse::getData()
 {	
 	_writeRead(REQUEST_DATA);
-	mouseData[0] |= _read();			/* buttons */
-	_i = _read();					/* x */
-	if(_i != 0) mouseData[1] = _i;
-	_i = -_read();					/* y is negative. no clue why */
-	if(_i != 0) mouseData[2] = _i;
-	mouseData[3] = (_intelliMouse)?-_read():0;	/* everyone loves trinary operators! and wheel is negative too. */
+	mouseData[0] |= _read();			/* buttons */					
+	if(( _i=_read() ))
+	{
+		mouseData[1] = _i;			/* x */
+	}
+	if(( _i = -_read() ))
+	{
+		mouseData[2] = _i;			/* y is negative. no clue why */
+	}
+	if(_intelliMouse)				/* if we have fancy mouse */
+	{
+		mouseData[3] = -_read();		/* wheel is negative too. */
+	}
+	else
+	{
+		mouseData[3] = 0;
+	}
 }
 
 void PS2Mouse::_golo(uint8_t pin)
@@ -162,7 +173,7 @@ uint8_t PS2Mouse::_read()
 }
 
 bool PS2Mouse::_intelliMouseCheck()	 /* IntelliMouse detection sequence */
-{	/* Don't ask - 200 100 80 is magic */
+{	/* Don't ask - 200 100 80 is magic wheel detection sequence */
 	_writeRead(SET_SAMPLE_RATE);
 	_writeRead(200);
 	_writeRead(SET_SAMPLE_RATE);

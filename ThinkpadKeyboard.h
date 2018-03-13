@@ -20,21 +20,7 @@ class ThinkpadKeyboard
 		KeyReport keyData;
 };
 
-ThinkpadKeyboard::ThinkpadKeyboard() /* constructor - initialize variables */
-{
-	for(_i = 0; _i < MAX_KEY_PRESS; _i++)
-	{
-		keyData.keys[_i] = 0;
-		keysCurrentlyPressed[_i] = 0;
-	}
-	keyData.modifiers = 0;
-	keyData.reserved = 0;
-	numKeysCurrentlyPressed = 0;
-	static HIDSubDescriptor nodeKeyboard(keyboard_hidReportDescriptor, sizeof(keyboard_hidReportDescriptor));
-	HID().AppendDescriptor(&nodeKeyboard);
-}
-
-void ThinkpadKeyboard::begin() /* setup pins */
+ThinkpadKeyboard::ThinkpadKeyboard() /* constructor - setup pins */
 {
 	for(_i = 0; _i < TOTAL_OUTPUT_PINS; _i++)	/* set all _outputPins as output and set HIGH */
 	{
@@ -62,6 +48,20 @@ void ThinkpadKeyboard::begin() /* setup pins */
 	attachInterrupt(_inputPins[14], pin14falling, FALLING);
 	attachInterrupt(_inputPins[15], pin15falling, FALLING);
 	attachInterrupt(_inputPins[16], pin16falling, FALLING);
+	static HIDSubDescriptor nodeKeyboard(keyboard_hidReportDescriptor, sizeof(keyboard_hidReportDescriptor));
+	HID().AppendDescriptor(&nodeKeyboard);
+}
+
+void ThinkpadKeyboard::begin() /* setup variables */
+{
+	for(_i = 0; _i < MAX_KEY_PRESS; _i++)
+	{
+		keysCurrentlyPressed[_i] = 0;
+		keyData.keys[_i] = 0;
+	}
+	keyData.reserved = 0;
+	keyData.modifiers = 0;
+	numKeysCurrentlyPressed = 0;
 }
 
 void ThinkpadKeyboard::getData()
@@ -72,7 +72,10 @@ void ThinkpadKeyboard::getData()
 		digitalWrite(_outputPins[outPin], HIGH);		/* keysCurrentlyPressed[current] set to keyboardMatrixChar[outPin][ISR_call_#] in ISR */
 	}
 	/* loop through keys in keysCurrentlyPressed and put them into the keyreport
-	 * _j cycles through keysCurrentlyPressed, _i cycles through open slots in keyreport.keys */
+	 * _j cycles through keysCurrentlyPressed, _i cycles through open slots in keyreport.keys
+	 * loop _j up to numKeysCurrentlyPressed 	- put that many keys into 
+	 * loop _i up to MAX_KEY_PRESS			- this many slots
+	  */
 	for(_j = 0, _i = 0; (_i < MAX_KEY_PRESS) && (_j < numKeysCurrentlyPressed); _j++) 		/* TOFIX: NKRO */
 	{
 		switch(keysCurrentlyPressed[_j])
@@ -115,15 +118,6 @@ void ThinkpadKeyboard::getData()
 			default:				keyData.keys[_i++] = keysCurrentlyPressed[_j];
 								break;
 		}
-		keysCurrentlyPressed[_j] = 0x00; /* It's been moved into keys for HID report, so clear it in the ISR array */
-	}
-	while(_i < MAX_KEY_PRESS) /* clear remaining key before sending the HID report. Empties out any keys pressed previously beyond the number pressed this loop */
-	{
-		keyData.keys[_i++] = 0x00;
-	}
-	while(_j < MAX_KEY_PRESS) /* complete the blanking of pressed keys array. This should never happen. */
-	{
-		keysCurrentlyPressed[_j] = 0x00;
 	}
 	numKeysCurrentlyPressed=0;
 }
@@ -131,5 +125,6 @@ void ThinkpadKeyboard::getData()
 void ThinkpadKeyboard::sendData() /* send the keyReport over USB HID */
 {
 	HID().SendReport(HID_PROTOCOL_KEYBOARD,&keyData,sizeof(keyData));
+	begin(); /* clear out all the keys */
 }
 #endif
