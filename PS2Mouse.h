@@ -19,7 +19,7 @@ class PS2Mouse
 		uint8_t _dataPin;
 		uint8_t _resetPin;
 
-		static uint8_t mouseData[4];					/* [0] = buttons, [1] = x, [2] = y, [3] = wheel */
+		static uint8_t _mouseData[4];					/* [0] = buttons, [1] = x, [2] = y, [3] = wheel */
 		
 		uint8_t _i;
 				
@@ -76,31 +76,31 @@ PS2Mouse::PS2Mouse(uint8_t clockPin, uint8_t dataPin)	/* Regular PS2 Mouse */
 void PS2Mouse::begin()
 {
 	_i = 0;
-	mouseData[0] = 0;
-	mouseData[1] = 0;
-	mouseData[2] = 0;
-	mouseData[3] = 0;
+	_mouseData[0] = 0;
+	_mouseData[1] = 0;
+	_mouseData[2] = 0;
+	_mouseData[3] = 0;
 }
 
 void PS2Mouse::getData()
 {	
 	_writeRead(REQUEST_DATA);
-	mouseData[0] |= _read();			/* buttons */
+	_mouseData[0] |= _read();			/* buttons */
 	if(( _i=_read() ))
 	{
-		mouseData[1] = _i;			/* x */
+		_mouseData[1] = _i;			/* x */
 	}
 	if(( _i = -_read() ))
 	{
-		mouseData[2] = _i;			/* y is negative. no clue why */
+		_mouseData[2] = _i;			/* y is negative. no clue why */
 	}
 	if(_intelliMouse)				/* if we have fancy mouse */
 	{
-		mouseData[3] = -_read();		/* wheel is negative too. */
+		_mouseData[3] = -_read();		/* wheel is negative too. */
 	}
 	else
 	{
-		mouseData[3] = 0;
+		_mouseData[3] = 0;
 	}
 }
 
@@ -191,11 +191,11 @@ bool PS2Mouse::_intelliMouseCheck()	 /* IntelliMouse detection sequence */
 
 void PS2Mouse::sendData()
 {
-	mouseData[0] = mouseData[0] & 0x07; 				/* chop off the bits above the rightmost three in the button press */
-	HID().SendReport(HID_PROTOCOL_MOUSE,mouseData,4);
-	mouseData[0] = 0;
-	mouseData[1] = 0;
-	mouseData[2] = 0;
-	mouseData[3] = 0; 		/* data sent. reset to zero */
+	_mouseData[0] = _mouseData[0] & 0x07; 				/* chop off the bits above the rightmost three in the button press */
+	HID().SendReport(HID_PROTOCOL_MOUSE,_mouseData,4);
+	_mouseData[0] = 0;
+	_mouseData[1] = 0;
+	_mouseData[2] = 0;
+	_mouseData[3] = 0; 		/* data sent. reset to zero */
 }
 #endif
