@@ -49,11 +49,11 @@ TouchPad::TouchPad(uint8_t clockPin, uint8_t dataPin)
 
 void TouchPad::begin()
 {
-	_gohi(_clockPin);	// start clock
-	_gohi(_dataPin);	// start data
-	_writeRead(RESET); // Reset
-	v_read();	// self-test state
-	v_read();	// mouse ID
+	_gohi(_clockPin);	/* start clock */
+	_gohi(_dataPin);	/* start data */
+	_writeRead(RESET); 	/* Reset */
+	v_read();			/* self-test state */
+	v_read();			/* mouse ID */
 	_intelliMouse = _intelliMouseCheck();
 	_writeRead(SET_RESOLUTION);
 	_writeRead(RESOLUTION_8_COUNTS_PER_MM);
@@ -61,7 +61,7 @@ void TouchPad::begin()
 	_writeRead(SET_SAMPLE_RATE);
 	_writeRead(SAMPLE_RATE);
 	_writeRead(SET_REMOTE_MODE);
-	v_read(); /* original -> */ /*	delay(500); */
+	v_read(); 		/* original -> */ /*	delay(500); */
 }
 
 void TouchPad::getData(uint8_t data[4])
@@ -70,7 +70,7 @@ void TouchPad::getData(uint8_t data[4])
 	data[0] = _read();					/* buttons */
 	data[1] = _read();					/* x */
 	data[2] = -_read();					/* y is negative. no clue why */
-	data[3] = (_intelliMouse)?-_read():0;	/* everyone loves trinary operators! */
+	data[3] = (_intelliMouse)?-_read():0;	/* everyone loves trinary operators! and wheel is negative too. */
 }
 
 void TouchPad::_golo(uint8_t pin)
@@ -96,24 +96,24 @@ void TouchPad::_write(uint8_t data)
 	delayMicroseconds(300);
 	_golo(_dataPin);
 	delayMicroseconds(10);
-	_gohi(_clockPin); // start bit
-	_wait(HIGH);		/* original ->> *//* _wait(LOW); */
-	for(_i = 0; _i < 8; _i++)	 // data
-	{
+	_gohi(_clockPin); 	/* start bit */
+	_wait(HIGH);		/* original ->> */ /* _wait(LOW); */
+	for(_i = 0; _i < 8; _i++)
+	{				/* data */
 		_trueHiFalseLo(data & 0x01);
-		_wait(LOW); // wait for clock
+		_wait(LOW); 	/* wait for clock */
 		_wait(HIGH);
 		parityBit = parityBit ^ (data & 0x01);
 		data = data >> 1;
 	}
 	_trueHiFalseLo(parityBit);
-	_wait(LOW); // clock cycle - like ack.
+	_wait(LOW); 		/* clock cycle - like ack. */
 	_wait(HIGH);
-	_gohi(_dataPin); // stop bit
+	_gohi(_dataPin); 	/* stop bit */
 	delayMicroseconds(50);
-	_wait(HIGH);		/* original ->> *//* _wait(LOW); */
+	_wait(HIGH);		/* original ->> */ /* _wait(LOW); */
 	while((digitalRead(_clockPin) == LOW) || (digitalRead(_dataPin) == LOW));
-	_golo(_clockPin); // put a hold on the incoming data
+	_golo(_clockPin); 	/* put a hold on the incoming data */
 }
 
 uint8_t TouchPad::_read()
@@ -123,28 +123,28 @@ uint8_t TouchPad::_read()
 	_gohi(_clockPin);
 	_gohi(_dataPin);
 	delayMicroseconds(50);
-	_wait(HIGH);	/* original ->> *//* _wait(LOW); */
+	_wait(HIGH);		/* original ->> */ /* _wait(LOW); */
 	delayMicroseconds(5);
-	_wait(LOW); /* original ->> *//* _wait(HIGH); */ // consume the start bit
+	_wait(LOW); 		/* original ->> */ /* _wait(HIGH); */ /* consume the start bit */
 
-	for(_i = 0; _i < 8; _i++) // consume 8 bits of data
-	{
+	for(_i = 0; _i < 8; _i++)
+	{				/* consume 8 bits of data */
 		_wait(HIGH);
 		data = data | (digitalRead(_dataPin) << _i);
 		_wait(LOW);
 	}
 
-	_wait(HIGH);	// eat parity bit, ignore it.
+	_wait(HIGH);		/* eat parity bit. parity errors are another nightmare for later */
 	_wait(LOW);
-	_wait(HIGH);	// eat stop bit
+	_wait(HIGH);		/* eat stop bit */
 	_wait(LOW);
-	_golo(_clockPin); // put a hold on the incoming data
+	_golo(_clockPin); 	/* put a hold on the incoming data */
 
 	return data;
 }
 
-bool TouchPad::_intelliMouseCheck()	 // IntelliMouse detection sequence
-{	// Don't ask - 200 100 80 is magic
+bool TouchPad::_intelliMouseCheck()	 /* IntelliMouse detection sequence */
+{	/* Don't ask - 200 100 80 is magic */
 	_writeRead(SET_SAMPLE_RATE);
 	_writeRead(200);
 	_writeRead(SET_SAMPLE_RATE);

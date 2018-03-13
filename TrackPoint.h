@@ -49,13 +49,13 @@ TrackPoint::TrackPoint(uint8_t clkPin, uint8_t dataPin, uint8_t resetPin)
 
 void TrackPoint::begin()
 {
-	_gohi(_clockPin);	// start clock
-	_gohi(_dataPin);	// start data
-	pinMode(_resetPin, OUTPUT);	// reset
+	_gohi(_clockPin);			/* start clock */
+	_gohi(_dataPin);			/* start data */
+	pinMode(_resetPin, OUTPUT);	/* reset */
 	digitalWrite(_resetPin, HIGH);
 	delay(2000); // empirical value
 	digitalWrite(_resetPin, LOW);
-	_write(SET_REMOTE_MODE);		// end reset
+	_write(SET_REMOTE_MODE);		/* end reset */
 	v_read();
 }
 
@@ -92,24 +92,24 @@ void TrackPoint::_write(uint8_t data)
 	delayMicroseconds(300);
 	_golo(_dataPin);
 	delayMicroseconds(10);
-	_gohi(_clockPin);	// start bit
-	_wait(HIGH);	/* wait for device to take control of clock */
-	for(_i = 0; _i < 8; _i++) 	// clear to send data
+	_gohi(_clockPin);			/* start bit */
+	_wait(HIGH);				/* wait for device to take control of clock */
+	for(_i = 0; _i < 8; _i++) 	/* clear to send data */
 	{
 		_trueHiFalseLo(data & 0x01);
-		_wait(LOW); // wait for clock
+		_wait(LOW); 			/* wait for clock */
 		_wait(HIGH);
 		parityBit = parityBit ^ (data & 0x01);
 		data = data >> 1;
 	}
-	_trueHiFalseLo(parityBit); // parity bit
-	_wait(LOW); // clock cycle - like ack.
+	_trueHiFalseLo(parityBit); 	/* parity bit */
+	_wait(LOW); 				/* clock cycle - like ack. */
 	_wait(HIGH);
-	_gohi(_dataPin); // stop bit
+	_gohi(_dataPin); 			/* stop bit */
 	delayMicroseconds(50);
 	_wait(HIGH);
-	while((digitalRead(_clockPin) == LOW) || (digitalRead(_dataPin) == LOW)); // mode switch
-	_golo(_clockPin);// hold up incoming data
+	while((digitalRead(_clockPin) == LOW) || (digitalRead(_dataPin) == LOW)); /* mode switch */
+	_golo(_clockPin); 			/* hold up incoming data */
 }
 
 uint8_t TrackPoint::_read()
@@ -120,7 +120,7 @@ uint8_t TrackPoint::_read()
 	_gohi(_dataPin);
 	delayMicroseconds(50);
 	_wait(HIGH);
-	delayMicroseconds(5); // not sure why.
+	delayMicroseconds(5);	/* not sure why. */
 	_wait(LOW);
 
 	for(_i = 0; _i < 8; _i++)
@@ -130,11 +130,11 @@ uint8_t TrackPoint::_read()
 		_wait(LOW);
 	}
 	
-	_wait(HIGH);	// eat parity bit, ignore it.
+	_wait(HIGH);			/* eat parity bit, ignore it. */
 	_wait(LOW);
-	_wait(HIGH);	// eat stop bit
+	_wait(HIGH);			/* eat stop bit */
 	_wait(LOW);
-	_golo(_clockPin);	// hold incoming data
+	_golo(_clockPin);		/* hold incoming data */
 
 	return data;
 }
