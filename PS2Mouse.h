@@ -1,16 +1,9 @@
+#ifndef PS2MouseIncludes_h
+#include "PS2MouseIncludes.h"
+#endif
+
 #ifndef PS2Mouse_h
 #define PS2Mouse_h
-
-#define SET_RESOLUTION			0xE8
-#define REQUEST_DATA			0xEB
-#define SET_REMOTE_MODE			0xF0
-#define GET_DEVICE_ID			0xF2
-#define SET_SAMPLE_RATE			0xF3
-#define SAMPLE_RATE				0x28
-#define RESET					0xFF
-#define INTELLI_MOUSE			0x03
-#define SET_SCALING_TO_1_TO_1		0xE6
-#define RESOLUTION_8_COUNTS_PER_MM	0x03
 
 class PS2Mouse
 {
@@ -19,10 +12,15 @@ class PS2Mouse
 		PS2Mouse(uint8_t, uint8_t);
 		void begin();
 		void getData();
+		void sendData();
 		
 	private:
 		uint8_t _clockPin;
 		uint8_t _dataPin;
+		uint8_t _resetPin;
+
+		static uint8_t mouseData[4];
+		
 		uint8_t _i;
 				
 		void _golo(uint8_t);
@@ -30,8 +28,6 @@ class PS2Mouse
 		
 		void _write(uint8_t);
 		uint8_t _read();
-
-		uint8_t _resetPin;
 
 		bool _intelliMouse;	
 		bool _intelliMouseCheck();
@@ -48,43 +44,48 @@ PS2Mouse::PS2Mouse(uint8_t clockPin, uint8_t dataPin, uint8_t resetPin) /* Track
 	_clockPin = clockPin;
 	_dataPin = dataPin;
 	_resetPin = resetPin;
-	_i = 0;
+	_gohi(_clockPin);			/* start clock */
+	_gohi(_dataPin);			/* start data */
+	pinMode(_resetPin, OUTPUT);	/* reset */
+	digitalWrite(_resetPin, HIGH);
+	delay(2000); 				/* empirical value */
+	digitalWrite(_resetPin, LOW);
+	_intelliMouse = 0;
+	_writeRead(SET_REMOTE_MODE);
+	v_read();
+
+	/* TrackPoint gets to send data */
+	static HIDSubDescriptor nodeMouse(mouse_hidReportDescriptor, sizeof(mouse_hidReportDescriptor));
+	HID().AppendDescriptor(&nodeMouse);
 }
 
-PS2Mouse::PS2Mouse(uint8_t clockPin, uint8_t dataPin)
+PS2Mouse::PS2Mouse(uint8_t clockPin, uint8_t dataPin)	/* Regular PS2 Mouse */
 {
 	_clockPin = clockPin;
 	_dataPin = dataPin;
 	_resetPin = 0;
-	_i = 0;
+	_gohi(_clockPin);	/* start clock */
+	_gohi(_dataPin);	/* start data */
+	_writeRead(RESET); 	/* Reset */
+	v_read();			/* self-test state */
+	v_read();			/* mouse ID */
+	_intelliMouse = _intelliMouseCheck();
+	_writeRead(SET_RESOLUTION);
+	_writeRead(RESOLUTION_8_COUNTS_PER_MM);
+	_writeRead(SET_SCALING_TO_1_TO_1);
+	_writeRead(SET_SAMPLE_RATE);
+	_writeRead(SAMPLE_RATE);		
+	_writeRead(SET_REMOTE_MODE);
+	v_read();
 }
 
 void PS2Mouse::begin()
 {
-	_gohi(_clockPin);			/* start clock */
-	_gohi(_dataPin);			/* start data */
-	if(_resetPin)				/* we're an eraser */
-	{
-		pinMode(_resetPin, OUTPUT);	/* reset */
-		digitalWrite(_resetPin, HIGH);
-		delay(2000); 				/* empirical value */
-		digitalWrite(_resetPin, LOW);
-		_intelliMouse = 0;
-	}
-	else						/* or we're a PS2 mouse */
-	{
-		_writeRead(RESET); 	/* Reset */
-		v_read();			/* self-test state */
-		v_read();			/* mouse ID */
-		_intelliMouse = _intelliMouseCheck();
-		_writeRead(SET_RESOLUTION);
-		_writeRead(RESOLUTION_8_COUNTS_PER_MM);
-		_writeRead(SET_SCALING_TO_1_TO_1);
-		_writeRead(SET_SAMPLE_RATE);
-		_writeRead(SAMPLE_RATE);		
-	}
-	_writeRead(SET_REMOTE_MODE);
-	v_read();
+	_i = 0;
+	mouseData[0] = 0;
+	mouseData[1] = 0;
+	mouseData[2] = 0;
+	mouseData[3] = 0;
 }
 
 void PS2Mouse::getData()
@@ -192,5 +193,12 @@ bool PS2Mouse::_intelliMouseCheck()	 /* IntelliMouse detection sequence */
 
 	_writeRead(GET_DEVICE_ID);
 	return (_read() == INTELLI_MOUSE);
+}
+
+void PS2Mouse::sendData()
+{
+	mouseData[0] = mouseData[0] & 0x07; 				/* chop off the bits above the rightmost three in the button press */
+	HID().SendReport(HID_PROTOCOL_MOUSE,mouseData,4);
+	begin(); 		/* data sent. reset to zero */
 }
 #endif
