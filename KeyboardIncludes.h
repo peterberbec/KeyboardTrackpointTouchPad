@@ -112,11 +112,6 @@ typedef struct
 #ifndef KeyboardVariables
 #define KeyboardVariables
 
-#ifndef HID_H_PRB
-#define HID_H_PRB
-#include "HID.h"
-#endif
-
 volatile uint8_t keysCurrentlyPressed[MAX_KEY_PRESS];
 volatile uint8_t numKeysCurrentlyPressed;
 uint8_t outPin;

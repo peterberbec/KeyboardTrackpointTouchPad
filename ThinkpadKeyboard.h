@@ -69,7 +69,7 @@ void ThinkpadKeyboard::getData()
 	for(outPin = 0; outPin < TOTAL_OUTPUT_PINS ; outPin++)	/* Light up all pins */
 	{
 		digitalWrite(_outputPins[outPin], LOW);			/* Interrupt triggered by _inputPins falling */
-		digitalWrite(_outputPins[outPin], HIGH);		/* keysCurrentlyPressed[current] set equal to intersection of input & output in keyboardMatrixChar */
+		digitalWrite(_outputPins[outPin], HIGH);		/* keysCurrentlyPressed[current] set to keyboardMatrixChar[outPin][ISR_call_#] in ISR */
 	}
 	/* loop through keys in keysCurrentlyPressed and put them into the keyreport
 	 * _j cycles through keysCurrentlyPressed, _i cycles through open slots in keyreport.keys */
