@@ -1,6 +1,11 @@
 #ifndef PS2MouseIncludes_h
 #define PS2MouseIncludes_h
 
+#define 	_wait(x) 				while(digitalRead(_clockPin) == x)
+#define 	_trueHiFalseLo(x)		((x)?_gohi(_dataPin):_golo(_dataPin))
+#define 	_writeRead(x)			{_write(x); (void)_read();}
+#define 	v_read()				(void)_read()
+
 #ifndef HID_H_PRB
 #define HID_H_PRB
 #include "HID.h"

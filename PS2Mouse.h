@@ -31,12 +31,6 @@ class PS2Mouse
 
 		bool _intelliMouse;	
 		bool _intelliMouseCheck();
-
-#define 	_wait(x) 				while(digitalRead(_clockPin) == x)
-#define 	_trueHiFalseLo(x)		((x)?_gohi(_dataPin):_golo(_dataPin))
-#define 	_writeRead(x)			{_write(x); (void)_read();}
-#define 	v_read()				(void)_read()
-
 };
 
 PS2Mouse::PS2Mouse(uint8_t clockPin, uint8_t dataPin, uint8_t resetPin) /* TrackPoint */
