@@ -16,5 +16,5 @@ void loop()
 	
 	touchPad.getData();				/* get data from touchPad first, touchPad.getGata is = */
 	trackPoint.getData();			/* get data from trackPoint second, trackPoint.getData is if(!0) = */
-	PS2Mouse::sendData();		/* send mouse data over USB */
+	PS2Mouse::sendData();			/* send mouse data over USB */
 }

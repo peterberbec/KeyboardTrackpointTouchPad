@@ -15,6 +15,7 @@ class ThinkpadKeyboard
 		
 	private:
 		void _press(uint8_t);
+		void _pressKeys();
 		uint16_t _i, _j; /*looping variables */
 		uint8_t _keysToSend, _keyPressCount;
 		const uint8_t  _inputPins[TOTAL_INPUT_PINS]  = { 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 49, 51, 53, LAST_PIN /* last needs a rewire */ };
@@ -89,6 +90,11 @@ void ThinkpadKeyboard::getData()
 		digitalWrite(_outputPins[outPin], LOW);			/* Interrupt triggered by _inputPins falling */
 		digitalWrite(_outputPins[outPin], HIGH);		/* keysCurrentlyPressed[current] set to keyboardMatrixChar[outPin][ISR_call_#] in ISR */
 	}
+	_pressKeys();
+}
+
+void ThinkpadKeyboard::_pressKeys()
+{
 	/* loop through keys in keysCurrentlyPressed and put them into the keyreport
 	 * _keyPressCount cycles through keysCurrentlyPressed, _keysToSend cycles through open slots in keyreport.keys
 	 * loop _keyPressCount up to numKeysCurrentlyPressed 	- put that many keys into 
